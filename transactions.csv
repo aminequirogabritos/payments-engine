@@ -1,3 +1,7 @@
-type, client, tx, amount
-deposit, 1, 1, 1.09
-deposit, 2, 2, 2.0
+type,       client,    tx,     amount
+deposit,    1,         1,      1.09
+deposit,    2,         2,      2.0
+withdrawal, 2,         3,      0.04
+withdrawal, 2,         4,      1000.04
+dispute,    1,         1,      
+deposit,    1,         5,       50.0001

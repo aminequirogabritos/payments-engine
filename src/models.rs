@@ -5,16 +5,16 @@ use std::{env, error::Error, fs::File, io, process};
 #[derive(Debug, Deserialize)]
 pub struct InputRecord {
     #[serde(rename = "type")]
-    record_type: TransactionType,
+    pub record_type: TransactionType,
 
     #[serde(rename = "client")]
-    record_client: u16,
+    pub record_client: u16,
 
     #[serde(rename = "tx")]
-    record_tx: u32,
+    pub record_tx: u32,
 
     #[serde(rename = "amount")]
-    record_amount: Decimal,
+    pub record_amount: Option<Decimal>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -27,3 +27,20 @@ pub enum TransactionType {
     Chargeback,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct OutputRecord {
+    #[serde(rename = "client")]
+    pub record_client: u16,
+
+    #[serde(rename = "available")]
+    pub record_available: Decimal,
+
+    #[serde(rename = "held")]
+    pub record_held: Decimal,
+
+    #[serde(rename = "total")]
+    pub record_total: Decimal,
+
+    #[serde(rename = "locked")]
+    pub record_locked: bool,
+}

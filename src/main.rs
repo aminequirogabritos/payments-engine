@@ -33,5 +33,7 @@ fn main() {
         println!("{:?}", record);
     }
 
+    process_payments(records);
+
 
 }

@@ -1,18 +1,12 @@
-use serde::Deserialize;
 use std::{env, error::Error, fs::File, io, process};
 
-#[derive(Debug, Deserialize)]
-struct Record {
-    user: u16,
-}
+pub mod models;
+pub mod reader;
+pub mod processor;
+pub mod writer;
 
-fn read_csv(file: File) -> Result<Vec<Record>, Box<dyn Error>> {
-    let mut rdr = csv::Reader::from_reader(file);
-
-    let records: Vec<Record> = rdr.deserialize().collect::<Result<Vec<Record>, _>>()?;
-
-    Ok(records)
-}
+use crate::reader::read_csv;
+use crate::processor::process_payments;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -25,12 +19,12 @@ fn main() {
         Ok(file_result) => match read_csv(file_result) {
             Ok(records) => records,
             Err(err) => {
-                println!("error running example: {}", err);
+                println!("error reading CSV: {}", err);
                 process::exit(1);
             }
         },
         Err(file_err) => {
-            println!("error running example: {}", file_err);
+            println!("error opening file: {}", file_err);
             process::exit(1);
         }
     };
@@ -39,9 +33,5 @@ fn main() {
         println!("{:?}", record);
     }
 
-    /*
-    if let Err(err) = example() {
-        println!("error running example: {}", err);
-        process::exit(1);
-    } */
+
 }

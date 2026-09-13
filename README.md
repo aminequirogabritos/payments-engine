@@ -1,10 +1,10 @@
-# Payments Engine
+### Payments Engine
 
 A simple payments engine that processes a CSV file containing client transactions and produces a CSV representation of the resulting account state.
 
 The engine supports deposits, withdrawals, disputes, resolves, and chargebacks. As transactions are processed, it keeps track of each client's available funds, held funds, total balance, and locked state.
 
-## How it works
+#### How it works
 
 The engine reads transactions sequentially from an input CSV file and applies them to the corresponding client account.
 
@@ -26,21 +26,21 @@ The resulting account state contains:
 
 Invalid transactions are rejected rather than being silently applied, with particular care taken around malformed input and inconsistent transaction relationships.
 
-## Technical decisions
+#### Technical decisions
 
-### Decimal arithmetic
+##### Decimal arithmetic
 
 Financial values are handled using [`rust_decimal`](https://crates.io/crates/rust_decimal) rather than floating-point types.
 
 This avoids the precision and rounding issues that can arise when representing decimal financial values using binary floating-point arithmetic. It also allows the engine to preserve the expected decimal precision throughout the processing pipeline.
 
-### CSV processing
+##### CSV processing
 
 [`csv`](https://crates.io/crates/csv) and [`serde`](https://crates.io/crates/serde) are used for CSV parsing, deserialization, serialization, and output generation.
 
 The `type` field from the input CSV is deserialized directly into a Rust enum rather than being handled as an arbitrary string. This makes the set of supported transaction types explicit and allows the compiler to help enforce the corresponding business logic.
 
-### Input consistency
+##### Input consistency
 
 The engine is intentionally strict when processing input. If a record cannot be parsed correctly, processing fails rather than continuing with potentially inconsistent account state.
 
@@ -56,7 +56,7 @@ Additional validation is performed for transactions that reference previous tran
 
 When one of these relationships is inconsistent, the entry is treated as an error originating from the external transaction source rather than allowing it to modify the client's account state.
 
-## Maintainability and efficiency
+#### Maintainability and efficiency
 
 The implementation intentionally prioritizes correctness, readability, maintainability, and safety over maximum processing efficiency.
 
@@ -76,7 +76,7 @@ In other words, the current implementation favors:
 
 The implementation could be extended with more sophisticated indexing and streaming-oriented processing if performance requirements increased.
 
-## Error handling philosophy
+#### Error handling philosophy
 
 For financial data, silently ignoring malformed or inconsistent input can be more dangerous than stopping processing.
 
@@ -86,7 +86,7 @@ Business-level inconsistencies involving relationships between transactions are 
 
 This distinction allows the engine to preserve a consistent account state while still recognizing that some invalid transactions may originate from the external system providing the transaction data.
 
-## Project structure
+#### Project structure
 
 The project is implemented in Rust as a command-line application.
 
@@ -111,7 +111,7 @@ Client account state
 Output CSV
 ```
 
-## Running the project
+#### Running the project
 
 The application expects the input CSV path as a command-line argument and writes the resulting account state to standard output.
 
@@ -127,7 +127,7 @@ This file is provided only as an example of the expected input format and applic
 
 The output can be redirected directly to a CSV file or piped into another process.
 
-## Testing
+#### Testing
 
 The project includes automated integration tests covering different transaction sequences and expected account states.
 
@@ -141,7 +141,7 @@ cargo test
 
 The test suite also verifies edge cases such as disputes exceeding the client's currently available funds, where the resulting balance may become negative.
 
-## Limitations and possible improvements
+#### Limitations and possible improvements
 
 The current implementation intentionally leaves room for optimization.
 
@@ -155,7 +155,7 @@ Potential future improvements include:
 
 These improvements would primarily address scalability and performance rather than fundamental correctness of the current processing model.
 
-## AI Usage
+#### AI Usage
 
 Generative AI tools were used throughout the development of this project for technical discussion, debugging, code review, exploring implementation alternatives, and refining documentation.
 

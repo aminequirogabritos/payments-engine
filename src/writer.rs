@@ -1,5 +1,4 @@
 use crate::models::{CommonError, OutputRecord};
-use std::error::Error;
 
 pub fn write_csv(clients: Vec<OutputRecord>) -> Result<(), CommonError> {
     let stdout = std::io::stdout();

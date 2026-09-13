@@ -4,7 +4,6 @@ use crate::models::{
     CommonError, InputRecord, OutputRecord,
     TransactionType::{Chargeback, Deposit, Dispute, Resolve, Withdrawal},
 };
-use std::{env, error::Error, fs::File, io, process};
 
 use std::collections::HashMap;
 
@@ -53,47 +52,36 @@ pub fn process_payments(transactions: Vec<InputRecord>) -> Result<Vec<OutputReco
             }
 
             Dispute => {
-                if let Some(transaction) = find_transaction(&transactions, record.record_tx) {
-                    if transaction.record_client == record.record_client
+                if let Some(transaction) = find_transaction(&transactions, record.record_tx)
+                    && transaction.record_client == record.record_client
                         && transaction.record_type == Deposit
-                    {
-                        if let Some(amount) = transaction.record_amount {
+                        && let Some(amount) = transaction.record_amount {
                             client.record_available -= amount;
                             client.record_held += amount;
                         }
-                    }
-                }
             }
 
             Resolve => {
-                if is_under_dispute(&transactions, index, record.record_tx) {
-                    if let Some(transaction) = find_transaction(&transactions, record.record_tx) {
-                        if transaction.record_client == record.record_client
+                if is_under_dispute(&transactions, index, record.record_tx)
+                    && let Some(transaction) = find_transaction(&transactions, record.record_tx)
+                        && transaction.record_client == record.record_client
                             && transaction.record_type == Deposit
-                        {
-                            if let Some(amount) = transaction.record_amount {
+                            && let Some(amount) = transaction.record_amount {
                                 client.record_available += amount;
                                 client.record_held -= amount;
                             }
-                        }
-                    }
-                }
             }
 
             Chargeback => {
-                if is_under_dispute(&transactions, index, record.record_tx) {
-                    if let Some(transaction) = find_transaction(&transactions, record.record_tx) {
-                        if transaction.record_client == record.record_client
+                if is_under_dispute(&transactions, index, record.record_tx)
+                    && let Some(transaction) = find_transaction(&transactions, record.record_tx)
+                        && transaction.record_client == record.record_client
                             && transaction.record_type == Deposit
-                        {
-                            if let Some(amount) = transaction.record_amount {
+                            && let Some(amount) = transaction.record_amount {
                                 client.record_held -= amount;
                                 client.record_total -= amount;
                                 client.record_locked = true;
                             }
-                        }
-                    }
-                }
             }
         }
     }

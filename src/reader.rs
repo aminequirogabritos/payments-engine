@@ -1,8 +1,7 @@
 
 use crate::models::{CommonError, InputRecord};
 use csv::Trim;
-use serde::Deserialize;
-use std::{env, error::Error, fs::File, io, process};
+use std::fs::File;
 
 pub fn read_csv(file_name: &String) -> Result<Vec<InputRecord>, CommonError> {
 

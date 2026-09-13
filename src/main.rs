@@ -21,11 +21,11 @@ fn main() {
 }
 
 fn run() -> Result<(), CommonError> {
-    let args: Vec<String> = env::args().collect();
+    let file_name = env::args()
+        .nth(1)
+        .ok_or_else(|| CommonError::MissingArgument("input file".to_string()))?;
 
-    let file_name = &args[1];
-
-    let records = read_csv(file_name)?;
+    let records = read_csv(&file_name)?;
 
     let clients = process_payments(records)?;
 

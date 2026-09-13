@@ -47,6 +47,7 @@ pub struct OutputRecord {
 
 #[derive(Debug)]
 pub enum CommonError {
+    MissingArgument(String),
     Input(csv::Error),
     Processing(String),
     Output(Box<dyn std::error::Error>),
@@ -55,6 +56,9 @@ pub enum CommonError {
 impl fmt::Display for CommonError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            CommonError::MissingArgument(msg) => {
+                write!(f, "missing argument error: {msg}")
+            }
             CommonError::Input(err) => {
                 write!(f, "input error: {err}")
             }

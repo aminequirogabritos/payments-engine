@@ -154,3 +154,9 @@ Potential future improvements include:
 * Introducing more specialized data structures if the transaction volume or performance requirements increase.
 
 These improvements would primarily address scalability and performance rather than fundamental correctness of the current processing model.
+
+## AI Usage
+
+Generative AI tools were used throughout the development of this project for technical discussion, debugging, code review, exploring implementation alternatives, and refining documentation.
+
+The full transcripts of the AI interactions that contributed to the solution are available in [`docs/ai-transcript.md`](docs/ai-transcript.md).

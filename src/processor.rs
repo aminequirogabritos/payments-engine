@@ -1,19 +1,18 @@
 use rust_decimal::Decimal;
-use std::{fmt::Debug, sync::Arc};
 
 use crate::models::{
-    InputRecord, OutputRecord,
+    CommonError, InputRecord, OutputRecord,
     TransactionType::{Chargeback, Deposit, Dispute, Resolve, Withdrawal},
 };
+use std::{env, error::Error, fs::File, io, process};
 
 use std::collections::HashMap;
 
-pub fn process_payments(transactions: Vec<InputRecord>) {
-    println!("hello from processor!");
+pub fn process_payments(transactions: Vec<InputRecord>) -> Result<Vec<OutputRecord>, CommonError> {
 
     let mut clients: HashMap<u16, OutputRecord> = HashMap::new();
 
-    for record in &transactions {
+    for (index, record) in transactions.iter().enumerate() {
         let client_id = record.record_client;
 
         let client = clients.entry(client_id).or_insert_with(|| OutputRecord {
@@ -25,72 +24,91 @@ pub fn process_payments(transactions: Vec<InputRecord>) {
         });
 
         if client.record_locked {
-            println!("Client locked!");
             continue;
         }
 
         match record.record_type {
             Deposit => {
-                println!(">> Transaction type: Deposit");
                 if let Some(amount) = record.record_amount {
                     client.record_available += amount;
                     client.record_total += amount;
-                    println!("After deposit: {:?}", client);
+                } else {
+                    return Err(CommonError::Processing(String::from(
+                        "couldn't process input - no deposit amount",
+                    )));
                 }
             }
 
             Withdrawal => {
-                println!(">> Transaction type: Withdrawal");
                 if let Some(amount) = record.record_amount {
                     if client.record_available >= amount {
                         client.record_available -= amount;
                         client.record_total -= amount;
-                        println!("After withdrawal: {:?}", client.record_available);
-                    } else {
-                        println!("Not enough funds!")
                     }
+                } else {
+                    return Err(CommonError::Processing(String::from(
+                        "couldn't process input - no withdrawal amount",
+                    )));
                 }
             }
 
             Dispute => {
-                println!(">> Transaction type: Dispute");
-                if let Some(amount) = find_transaction_amount(&transactions, record.record_tx) {
-                    client.record_available -= amount;
-                    client.record_held += amount;
-
-                    println!("After dispute: {:?}", client);
+                if let Some(transaction) = find_transaction(&transactions, record.record_tx) {
+                    if transaction.record_client == record.record_client
+                        && transaction.record_type == Deposit
+                    {
+                        if let Some(amount) = transaction.record_amount {
+                            client.record_available -= amount;
+                            client.record_held += amount;
+                        }
+                    }
                 }
             }
 
             Resolve => {
-                // TODO : check if there was a dispute for this tx before a resolve
-                println!(">> Transaction type: Resolve");
-                if let Some(amount) = find_transaction_amount(&transactions, record.record_tx) {
-                    client.record_held -= amount;
-                    client.record_available += amount;
-
-                    println!("After resolve: {:?}", client);
+                if is_under_dispute(&transactions, index, record.record_tx) {
+                    if let Some(transaction) = find_transaction(&transactions, record.record_tx) {
+                        if transaction.record_client == record.record_client
+                            && transaction.record_type == Deposit
+                        {
+                            if let Some(amount) = transaction.record_amount {
+                                client.record_available += amount;
+                                client.record_held -= amount;
+                            }
+                        }
+                    }
                 }
             }
 
             Chargeback => {
-                // TODO : check if there was a dispute for this tx before a chargeback
-                println!(">> Transaction type: Chargeback");
-                if let Some(amount) = find_transaction_amount(&transactions, record.record_tx) {
-                    client.record_held -= amount;
-                    client.record_total -= amount;
-                    client.record_locked = true;
-
-                    println!("After chargeback: {:?}", client);
+                if is_under_dispute(&transactions, index, record.record_tx) {
+                    if let Some(transaction) = find_transaction(&transactions, record.record_tx) {
+                        if transaction.record_client == record.record_client
+                            && transaction.record_type == Deposit
+                        {
+                            if let Some(amount) = transaction.record_amount {
+                                client.record_held -= amount;
+                                client.record_total -= amount;
+                                client.record_locked = true;
+                            }
+                        }
+                    }
                 }
             }
         }
     }
+
+    let output_records: Vec<OutputRecord> = clients.into_values().collect();
+
+    Ok(output_records)
 }
 
-fn find_transaction_amount(transactions: &[InputRecord], tx_id: u32) -> Option<Decimal> {
-    transactions
+fn find_transaction(transactions: &[InputRecord], tx_id: u32) -> Option<&InputRecord> {
+    transactions.iter().find(|record| record.record_tx == tx_id)
+}
+
+fn is_under_dispute(transactions: &[InputRecord], current_index: usize, tx_id: u32) -> bool {
+    transactions[..current_index]
         .iter()
-        .find(|record| record.record_tx == tx_id)
-        .and_then(|record| record.record_amount)
+        .any(|record| record.record_tx == tx_id && record.record_type == Dispute)
 }

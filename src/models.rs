@@ -1,5 +1,6 @@
 use rust_decimal::Decimal;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use std::fmt;
 use std::{env, error::Error, fs::File, io, process};
 
 #[derive(Debug, Deserialize)]
@@ -17,7 +18,7 @@ pub struct InputRecord {
     pub record_amount: Option<Decimal>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum TransactionType {
     Deposit,
@@ -27,7 +28,7 @@ pub enum TransactionType {
     Chargeback,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize)]
 pub struct OutputRecord {
     #[serde(rename = "client")]
     pub record_client: u16,
@@ -43,4 +44,27 @@ pub struct OutputRecord {
 
     #[serde(rename = "locked")]
     pub record_locked: bool,
+}
+
+#[derive(Debug)]
+pub enum CommonError {
+    Input(csv::Error),
+    Processing(String),
+    Output(Box<dyn std::error::Error>),
+}
+
+impl fmt::Display for CommonError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            CommonError::Input(err) => {
+                write!(f, "input error: {err}")
+            }
+            CommonError::Processing(msg) => {
+                write!(f, "processing error: {msg}")
+            }
+            CommonError::Output(err) => {
+                write!(f, "output error: {err}")
+            }
+        }
+    }
 }

@@ -1,39 +1,35 @@
 use std::{env, error::Error, fs::File, io, process};
 
 pub mod models;
-pub mod reader;
 pub mod processor;
+pub mod reader;
 pub mod writer;
 
-use crate::reader::read_csv;
+use crate::models::CommonError;
 use crate::processor::process_payments;
+use crate::reader::read_csv;
+use crate::writer::write_csv;
 
 fn main() {
+    match run() {
+        Ok(()) => {}
+        Err(err) => {
+            eprintln!("Error: {err}");
+            std::process::exit(1);
+        }
+    }
+}
+
+fn run() -> Result<(), CommonError> {
     let args: Vec<String> = env::args().collect();
 
     let file_name = &args[1];
 
-    let file = File::open(file_name);
+    let records = read_csv(file_name)?;
 
-    let records = match file {
-        Ok(file_result) => match read_csv(file_result) {
-            Ok(records) => records,
-            Err(err) => {
-                println!("error reading CSV: {}", err);
-                process::exit(1);
-            }
-        },
-        Err(file_err) => {
-            println!("error opening file: {}", file_err);
-            process::exit(1);
-        }
-    };
+    let clients = process_payments(records)?;
 
-    for record in &records {
-        println!("{:?}", record);
-    }
+    write_csv(clients)?;
 
-    process_payments(records);
-
-
+    Ok(())
 }

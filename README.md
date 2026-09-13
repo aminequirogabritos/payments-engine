@@ -118,10 +118,10 @@ The application expects the input CSV path as a command-line argument and writes
 For example:
 
 ```bash
-cargo run -- examples/sample.csv > output.csv
+cargo run -- examples/transactions.csv > output.csv
 ```
 
-The repository includes `examples/sample.csv` as a representative input file for demonstration and manual testing. It contains a variety of valid transaction sequences, including deposits, withdrawals, disputes, resolves, chargebacks, multiple clients, and decimal amounts.
+The repository includes `examples/transactions.csv` as a representative input file for demonstration and manual testing. It contains a variety of valid transaction sequences, including deposits, withdrawals, disputes, resolves, chargebacks, multiple clients, and decimal amounts.
 
 This file is provided only as an example of the expected input format and application behavior. It is not intended to represent a production dataset or an authoritative test fixture. The automated integration tests in `tests/` contain the specific input/output cases used to verify the application's behavior.
 
